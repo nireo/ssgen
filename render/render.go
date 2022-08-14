@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/julienschmidt/httprouter"
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/extension"
 	"github.com/yuin/goldmark/parser"
@@ -65,7 +66,7 @@ func New(dir string) (*Renderer, error) {
 	return rdr, nil
 }
 
-func (re *Renderer) RenderPostPage(w http.ResponseWriter, r *http.Request) {
+func (re *Renderer) RenderPostPage(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	if r.Method != http.MethodGet {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
@@ -91,6 +92,38 @@ func (re *Renderer) RenderPostPage(w http.ResponseWriter, r *http.Request) {
 
 	tmpl := template.Must(template.ParseFiles("post.html"))
 
+	if err := tmpl.Execute(w, pr); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+}
+
+type HomePost struct {
+	Name string
+}
+
+type HomeRender struct {
+	Posts []HomePost
+}
+
+func (re *Renderer) RenderHomePage(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	if r.Method != http.MethodGet {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
+	posts := make([]HomePost, 0)
+	for name := range re.posts {
+		posts = append(posts, HomePost{
+			Name: name,
+		})
+	}
+
+	pr := HomeRender{
+		Posts: posts,
+	}
+
+	tmpl := template.Must(template.ParseFiles("home.html"))
 	if err := tmpl.Execute(w, pr); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return

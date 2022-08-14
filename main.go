@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/julienschmidt/httprouter"
 	"github.com/nireo/ssgen/render"
 	"github.com/nireo/ssgen/setup"
 )
@@ -34,6 +35,9 @@ func main() {
 		panic(err)
 	}
 
-	http.HandleFunc("/post", rdr.RenderPostPage)
-	log.Fatalln(http.ListenAndServe(":8080", nil))
+	router := httprouter.New()
+	router.GET("/", rdr.RenderHomePage)
+	router.GET("/post", rdr.RenderPostPage)
+
+	log.Fatalln(http.ListenAndServe(":8080", router))
 }
