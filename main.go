@@ -3,8 +3,11 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
+	"net/http"
 	"os"
 
+	"github.com/nireo/ssgen/render"
 	"github.com/nireo/ssgen/setup"
 )
 
@@ -25,4 +28,12 @@ func main() {
 			os.Exit(1)
 		}
 	}
+
+	rdr, err := render.New(*ssgenDir)
+	if err != nil {
+		panic(err)
+	}
+
+	http.HandleFunc("/post", rdr.RenderPostPage)
+	log.Fatalln(http.ListenAndServe(":8080", nil))
 }
