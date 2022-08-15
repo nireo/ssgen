@@ -6,10 +6,12 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/nireo/ssgen/render"
 	"github.com/nireo/ssgen/setup"
+	"gopkg.in/ini.v1"
 )
 
 func main() {
@@ -30,14 +32,25 @@ func main() {
 		}
 	}
 
-	rdr, err := render.New(*ssgenDir)
+	metadataCfg, err := ini.Load(filepath.Join(*ssgenDir, "metadata.ini"))
+	if err != nil {
+		fmt.Printf("[ssgen] cannot read metadata file: %s", err)
+		os.Exit(1)
+	}
+
+	rendererMetadata := render.Metadata{
+		Title:  metadataCfg.Section("site-meta").Key("title").String(),
+		Author: metadataCfg.Section("site-meta").Key("author").String(),
+	}
+
+	rdr, err := render.New(*ssgenDir, rendererMetadata)
 	if err != nil {
 		panic(err)
 	}
 
 	router := httprouter.New()
 	router.GET("/", rdr.RenderHomePage)
-	router.GET("/post", rdr.RenderPostPage)
+	router.GET("/post/:post", rdr.RenderPostPage)
 
 	log.Fatalln(http.ListenAndServe(":8080", router))
 }

@@ -15,19 +15,25 @@ import (
 	"github.com/yuin/goldmark/renderer/html"
 )
 
+type Metadata struct {
+	Title  string
+	Author string
+}
+
 type Renderer struct {
 	// all of the posts are cached in memory since they don't take up that much space
 	// and they're quicker to retrieve.
 	posts     map[string][]byte
 	directory string
 	md        goldmark.Markdown
+	meta      Metadata
 }
 
 type PageRender struct {
 	HTML template.HTML
 }
 
-func New(dir string) (*Renderer, error) {
+func New(dir string, meta Metadata) (*Renderer, error) {
 	rdr := &Renderer{
 		posts:     make(map[string][]byte),
 		directory: dir,
@@ -63,16 +69,18 @@ func New(dir string) (*Renderer, error) {
 		),
 	)
 
+	rdr.meta = meta
+
 	return rdr, nil
 }
 
-func (re *Renderer) RenderPostPage(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+func (re *Renderer) RenderPostPage(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	if r.Method != http.MethodGet {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
 	}
 
-	postName := r.URL.Query().Get("p")
+	postName := ps.ByName("post")
 
 	mdData, ok := re.posts[postName]
 	if !ok {
@@ -104,6 +112,7 @@ type HomePost struct {
 
 type HomeRender struct {
 	Posts []HomePost
+	Meta  Metadata
 }
 
 func (re *Renderer) RenderHomePage(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
@@ -121,6 +130,7 @@ func (re *Renderer) RenderHomePage(w http.ResponseWriter, r *http.Request, _ htt
 
 	pr := HomeRender{
 		Posts: posts,
+		Meta:  re.meta,
 	}
 
 	tmpl := template.Must(template.ParseFiles("home.html"))

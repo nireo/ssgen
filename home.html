@@ -4,10 +4,12 @@
     <title>post</title>
   </head>
   <body>
+    <h3>{{ .Meta.Title }}</h3>
+    <p>{{ .Meta.Author }}</p>
     <h3>posts</h3>
     <ul>
       {{ range .Posts }}
-      <a href="/post?p={{ .Name }}">{{ .Name }}</a>
+      <a href="/post/{{ .Name }}">{{ .Name }}</a>
       {{ end }}
     </ul>
   </body>
