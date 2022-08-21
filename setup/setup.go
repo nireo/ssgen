@@ -25,6 +25,16 @@ func genSiteMetadata(baseDirectory string) error {
 	return nil
 }
 
+func genCustomTheme(baseDirectory string) error {
+	file, err := os.Create(filepath.Join(baseDirectory, "theme.css"))
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	return nil
+}
+
 func genPostDirectory(baseDirectory string) error {
 	return os.Mkdir(filepath.Join(baseDirectory, "posts"), os.ModePerm)
 }
@@ -42,6 +52,9 @@ func SetupDirectory(baseDirectory string) error {
 
 	if err := genPostDirectory(baseDirectory); err != nil {
 		return err
+	}
+
+	if err := genCustomTheme(baseDirectory); err != nil {
 	}
 
 	return nil

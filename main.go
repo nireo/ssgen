@@ -51,6 +51,7 @@ func main() {
 	router := httprouter.New()
 	router.GET("/", rdr.RenderHomePage)
 	router.GET("/post/:post", rdr.RenderPostPage)
+	router.ServeFiles("/static/*filepath", http.Dir(*ssgenDir))
 
 	log.Fatalln(http.ListenAndServe(":8080", router))
 }
